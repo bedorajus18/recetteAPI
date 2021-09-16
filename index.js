@@ -39,11 +39,17 @@ app.get("/recette", function(request, response) {
     })
 });
 app.get('/recette/:id', function(request, response) {
-    con.query("SELECT * from recette where id=" + request.params.id + ";", function(err, result) {
-        if (err) throw err;
-        console.log(result);
-        response.status(200).json(result);
-    })
+    // si id <= 0 ou manquant ou n'est un nombre-> 400 + petit message
+    if (!Number.isInteger(request.params.id) || (request.params.id <= 0)) {
+        response.status(400).json({ "message": "L'identifiant est incorrect ou manquant." });
+    } else
+        con.query("SELECT * from recette where id=" + request.params.id + ";", function(err, result) {
+            if (err) {
+                console.log(err);
+                response.status(503).json({ "message": "un problème est survenu." });
+            }
+            res.status(200).json(result);
+        })
 });
 app.post('/recette', (req, res) => {
     requete = "INSERT INTO RECETTE (titre, resume) values ('" + req.body.titre + "','" + req.body.resume + "');";
@@ -51,7 +57,7 @@ app.post('/recette', (req, res) => {
     con.query(requete, function(err, result) {
         if (err) throw err;
         res.status(200).json(result);
-    })
+    });
 });
 app.delete('/recette/:id', (req, res) => {
     const id = parseInt(req.params.id)
